@@ -60,7 +60,7 @@
   };
 
   const moveLine = (e) => {
-    if (!(e.key !== 'ArrowLeft' || e.key !== 'ArrowRight')) return;
+    if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
 
     const increment = 20;
     const pos = +line.style.left.split('px')[0];
@@ -112,6 +112,11 @@
     displayMarkup(!showMarkup);
   };
 
+  const showAll = () => {
+    setLinePosition(designSlider.clientWidth / 2);
+    displayMarkup(true);
+  };
+
   onMount(async () => {
     // Add Events
     window.addEventListener('mousemove', drag);
@@ -120,6 +125,19 @@
     window.addEventListener('keydown', startMeasure);
     window.addEventListener('keyup', stopMeasure);
     window.addEventListener('keydown', moveLine);
+
+    function addEventToKey(key, button) {
+      const handleKeyPress = (e) => {
+        if (e.key !== key) return;
+        button.click();
+      };
+      window.addEventListener('keydown', handleKeyPress);
+    }
+
+    addEventToKey('t', toggleMarkup);
+    addEventToKey('m', markupOnly);
+    addEventToKey('d', designOnly);
+    addEventToKey('s', showAllButton);
 
     // Set inital slider position
     const startPos = getComputedStyle(line).left;
@@ -144,7 +162,7 @@
     left: 0;
     width: var(--sliderPosition);
     z-index: 2;
-    z-index: -1000;
+    /* z-index: -1000; */
   }
 
   img {
@@ -177,6 +195,7 @@
     #designSlider {
       max-width: var(--mobile-width);
     }
+
     #desktopDesign {
       display: none;
     }
@@ -204,14 +223,14 @@
   /* Helper class which will hide all sections. */
   /* Useful if you want to check just the design image */
   /* Used with the "Hide Markup" button */
-  :global(.hide-markup section) {
+  :global(.hide-markup > *:not(#designSlider)) {
     display: none;
   }
 
   nav {
     position: fixed;
-    top: 0;
-    right: 0;
+    top: 10px;
+    right: 10px;
     opacity: 0.2;
     z-index: 1000;
   }
@@ -223,30 +242,39 @@
   button {
     display: block;
     margin-bottom: 0.5rem;
+    padding: 2px 5px;
+    cursor: pointer;
+    width: 100%;
+  }
+
+  button span {
+    font-weight: bold;
+    text-decoration: underline;
   }
 </style>
 
 <div id="designSlider" style="--width: {width}; --mobile-width: {mobileWidth};">
   <nav>
-    <button on:click={() => toggleMarkupClass()}>Toggle Markup </button>
+    <button
+      id="toggleMarkup"
+      on:click={() => toggleMarkupClass()}><span>T</span>oggle Markup
+    </button>
 
     <button
+      id="markupOnly"
       on:click={() => {
         setLineLeft();
         displayMarkup(true);
-      }}>Markup Only</button>
+      }}><span>M</span>arkup Only</button>
+
     <button
+      id="designOnly"
       on:click={() => {
         displayMarkup(false);
         setLineRight();
-      }}>Design Only</button>
+      }}><span>D</span>esign Only</button>
 
-    <button
-      on:click={() => {
-        setLinePosition(200);
-        displayMarkup(true);
-      }}>Show All
-    </button>
+    <button id="showAllButton" on:click={showAll}><span>S</span>how All</button>
   </nav>
 
   <div
